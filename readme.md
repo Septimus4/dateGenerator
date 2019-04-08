@@ -1,13 +1,13 @@
-#DateGenerator
+#DateGenerator  
 Date generator supporting a few output with customizable separator.
 Just a simple code that allow to generate wordlist based on dates.
 Could be used directly in any other python script.
-###Support
+###Support  
 * yyyymmdd
 * mmddyyyy
 * ddmmyyyy
-##Installation
-###Requirements
+##Installation  
+###Requirements  
 * python
 ## Usage
 You can simply run it as a script with arguments:
