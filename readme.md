@@ -1,13 +1,13 @@
-#DateGenerator  
-Date generator supporting a few output with customizable separator.
-Just a simple code that allow to generate wordlist based on dates.
-Could be used directly in any other python script.
-###Support  
+# DateGenerator
+Date generator supporting a few output with customizable separator.  
+Just a simple code that allow to generate wordlist based on dates.  
+Could be used directly in any other python script.  
+### Support  
 * yyyymmdd
 * mmddyyyy
 * ddmmyyyy
-##Installation  
-###Requirements  
+## Installation 
+### Requirements
 * python
 ## Usage
 You can simply run it as a script with arguments:
@@ -22,9 +22,9 @@ You can simply run it as a script with arguments:
 ```bash
 python3  date_generator.py {starting year} {ending year} {display format} {separator}
 ```
-You could also remove the main function and use it in your python code as a class.
-The separator in not required, if not passed the script doesn't display any.
-##Example
+You could also remove the main function and use it in your python code as a class.  
+The separator in not required, if not passed the script doesn't display any.  
+## Example
 python3 date_generator.py 1900 1901 1  
 01011900  
 02011900  
