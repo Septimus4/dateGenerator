@@ -25,7 +25,7 @@ python3  date_generator.py {starting year} {ending year} {display format} {separ
 You could also remove the main function and use it in your python code as a class.  
 The separator in not required, if not passed the script doesn't display any.  
 ## Example
-`$ python3 date_generator.py 1900 1901 1`
+`$ python3 date_generator.py 1900 1901 1`  
 01011900  
 02011900  
 03011900  
@@ -40,7 +40,7 @@ The separator in not required, if not passed the script doesn't display any.
 30121900  
 31121900  
 
-`$ python3 date_generator.py 1900 1901 0 "-"`
+`$ python3 date_generator.py 1900 1901 0 "-"`  
 1900-01-01  
 1900-01-02  
 1900-01-03  
