@@ -1,5 +1,5 @@
 # DateGenerator
-Date generator supporting a few output with customizable separator.  
+Date generator supports a few output with customizable separator.  
 Just a simple code that allow to generate wordlist based on dates.  
 Could be used directly in any other python script.  
 ### Support  
