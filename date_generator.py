@@ -1,4 +1,5 @@
 import sys
+import calendar
 
 class DateGenerator:
     def __init__(self, starting, ending, display, separator):
@@ -13,10 +14,12 @@ class DateGenerator:
         }
 
     def generate_date(self):
+        dispatch = self.display_array[self.display]
         for year in range(*self.year_range):
             for month in range(1, 13):
-                for day in range(1, 32):
-                    self.display_array[self.display](year, month, day)
+                _, last_day = calendar.monthrange(year, month)
+                for day in range(1, last_day + 1):
+                    dispatch(year, month, day)
 
     def ymd(self, year, month, day):
         print(f"{year}{self.separator}{month:02d}{self.separator}{day:02d}")
