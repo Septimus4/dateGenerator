@@ -2,10 +2,10 @@ import sys
 
 class DateGenerator:
     def __init__(self, starting, ending, display, separator):
-        self.__year_range = range(int(starting), int(ending))
-        self.__display = display
-        self.__separator = separator
-        self.__display_array = {
+        self.year_range = [int(start) for start in [starting, ending]]
+        self.display = display
+        self.separator = separator
+        self.display_array = {
             '0': self.ymd,
             '1': self.dmy,
             '2': self.mdy,
@@ -13,22 +13,22 @@ class DateGenerator:
         }
 
     def generate_date(self):
-        for year in self.__year_range:
+        for year in range(*self.year_range):
             for month in range(1, 13):
                 for day in range(1, 32):
-                    self.__display_array[self.__display](year, month, day)
+                    self.display_array[self.display](year, month, day)
 
     def ymd(self, year, month, day):
-        print(f"{year}{self.__separator}{month:02d}{self.__separator}{day:02d}")
+        print(f"{year}{self.separator}{month:02d}{self.separator}{day:02d}")
 
     def dmy(self, year, month, day):
-        print(f"{day:02d}{self.__separator}{month:02d}{self.__separator}{year}")
+        print(f"{day:02d}{self.separator}{month:02d}{self.separator}{year}")
 
     def mdy(self, year, month, day):
-        print(f"{month:02d}{self.__separator}{day:02d}{self.__separator}{year}")
+        print(f"{month:02d}{self.separator}{day:02d}{self.separator}{year}")
 
     def dmys(self, year, month, day):
-        print(f"{day:02d}{self.__separator}{month:02d}{self.__separator}{str(year)[-2:]}")
+        print(f"{day:02d}{self.separator}{month:02d}{self.separator}{str(year)[-2:]}")
 
 def main():
     if len(sys.argv) == 4:
