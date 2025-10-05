@@ -7,7 +7,7 @@ The Python API is built around the :class:`date_generator.DateGenerator` class a
 ```python
 from date_generator import DateGenerator
 
-generator = DateGenerator(start_year=2020, end_year=2021, preset="ymd", separator="-")
+generator = DateGenerator(start_year=2020, end_year=2021, format="YYYYMMDD", separator="-")
 for value in generator.generate():
     print(value)
 ```
@@ -16,7 +16,7 @@ Iteration is lazy, making it safe to stream large ranges without exhausting memo
 
 ## Working with configuration objects
 
-`DateGenerator` accepts either keyword arguments or a :class:`date_generator.DateGeneratorConfig` instance. The latter is helpful when building reusable presets:
+`DateGenerator` accepts either keyword arguments or a :class:`date_generator.DateGeneratorConfig` instance. The latter is helpful when building reusable format templates:
 
 ```python
 from date_generator import DateGenerator, DateGeneratorConfig
@@ -24,7 +24,7 @@ from date_generator import DateGenerator, DateGeneratorConfig
 config = DateGeneratorConfig(
     start_year=1980,
     end_year=1990,
-    preset="dmys",
+    format="DDMMYY",
     separator="/",
     prefix="corp-",
     suffix="!",
@@ -45,7 +45,7 @@ Use the `write` method to save outputs to disk:
 from pathlib import Path
 from date_generator import DateGenerator
 
-DateGenerator(start_year=2000, end_year=2000, preset="ymd").write(Path("wordlists/2000.txt"))
+DateGenerator(start_year=2000, end_year=2000, format="YYYYMMDD").write(Path("wordlists/2000.txt"))
 ```
 
 The parent directory is created automatically if required.
@@ -66,7 +66,7 @@ dates = generate_dates(
 print(dates[:3])  # ['01jan2023', '02jan2023', '03jan2023']
 ```
 
-When `custom_pattern` is set, the `preset` and `separator` options are ignored.
+When `custom_pattern` is set, the `format` and `separator` options are ignored.
 
 ## Filtering by month or day
 

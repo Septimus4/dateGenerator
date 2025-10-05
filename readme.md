@@ -4,7 +4,7 @@ Date Generator creates date-based wordlists that can be used for penetration tes
 
 ## Features
 
-- Multiple preset formats (`ymd`, `dmy`, `mdy`, and short-year variants)
+- Symbolic format templates (`YYYYMMDD`, `YYMMDD`, `MM`, `MMDD`, etc.)
 - Optional custom `strftime` patterns
 - Prefix, suffix, casing, and separator controls
 - Month/day filtering, leap-day aware
@@ -26,17 +26,17 @@ pip install -e .[dev]
 ## Command line usage
 
 ```bash
-date-generator --start 1990 --end 1995 --preset dmys --separator "/" --prefix corp-
+date-generator --start 1990 --end 1995 --format DDMMYY --separator "/" --prefix corp-
 ```
 
-Use `date-generator --help` or consult the [CLI documentation](docs/cli.md) for all options. The script can also be executed with `python -m date_generator` or `python date_generator.py` for compatibility with previous versions.
+Use `date-generator --help` or consult the [CLI documentation](docs/cli.md) for all options. The tool can also be executed with `python -m date_generator` (module execution) during development.
 
 ## Library usage
 
 ```python
 from date_generator import DateGenerator
 
-generator = DateGenerator(start_year=2020, end_year=2021, preset="ymd", separator="-")
+generator = DateGenerator(start_year=2020, end_year=2021, format="YYYYMMDD", separator="-")
 for value in generator.generate():
     print(value)
 ```
