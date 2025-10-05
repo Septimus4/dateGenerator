@@ -1,92 +1,106 @@
-import io
-import unittest
-from unittest.mock import patch
-from date_generator import DateGenerator
+from __future__ import annotations
+
+from pathlib import Path
+
+import pytest
+
+from date_generator import FORMAT_PRESETS, DateGenerator, generate_dates
+from date_generator.cli import run_from_args
+from date_generator.core import DateGeneratorError
 
 
-class TestDateGenerator(unittest.TestCase):
-    def test_generate_date(self):
-        start_year = 2022
-        end_year = 2023
-        display_format = "0"
-        separator = "-"
-        date_gen = DateGenerator(start_year, end_year, display_format, separator)
-
-        with patch('sys.stdout', new=io.StringIO()) as fake_stdout:
-            date_gen.generate_date()
-            result = fake_stdout.getvalue()
-        with open("values/generate.txt", "r") as f:
-            exp_output = f.read()
-        self.assertEqual(result, exp_output)
-
-    def test_ymd(self):
-        # Given
-        year = 2010
-        month = 6
-        day = 15
-        separator = "-"
-        exp_output = "2010-06-15\n"
-        date_gen = DateGenerator(year, year, "0", separator)
-
-        # When
-        with patch('sys.stdout', new=io.StringIO()) as fake_stdout:
-            date_gen.ymd(year, month, day)
-            result = fake_stdout.getvalue()
-
-        # Then
-        self.assertEqual(result, exp_output)
-
-    def test_dmy(self):
-        # Given
-        year = 2010
-        month = 6
-        day = 15
-        separator = "-"
-        exp_output = "15-06-2010\n"
-        date_gen = DateGenerator(year, year, "1", separator)
-
-        # When
-        with patch('sys.stdout', new=io.StringIO()) as fake_stdout:
-            date_gen.dmy(year, month, day)
-            result = fake_stdout.getvalue()
-
-        # Then
-        self.assertEqual(result, exp_output)
-
-    def test_mdy(self):
-        # Given
-        year = 2010
-        month = 6
-        day = 15
-        separator = "/"
-        exp_output = "06/15/2010\n"
-        date_gen = DateGenerator(year, year, "2", separator)
-
-        # When
-        with patch('sys.stdout', new=io.StringIO()) as fake_stdout:
-            date_gen.mdy(year, month, day)
-            result = fake_stdout.getvalue()
-
-        # Then
-        self.assertEqual(result, exp_output)
-
-    def test_dmys(self):
-        # Given
-        year = 2010
-        month = 6
-        day = 15
-        separator = "/"
-        exp_output = "15/06/10\n"
-        date_gen = DateGenerator(year, year, "3", separator)
-
-        # When
-        with patch('sys.stdout', new=io.StringIO()) as fake_stdout:
-            date_gen.dmys(year, month, day)
-            result = fake_stdout.getvalue()
-
-        # Then
-        self.assertEqual(result, exp_output)
+def test_generate_dates_default_order():
+    result = generate_dates(start_year=2024, end_year=2024, preset="ymd", separator="-")
+    assert result[0] == "2024-01-01"
+    assert result[-1] == "2024-12-31"
+    assert len(result) == 366  # leap year
 
 
-if __name__ == '__main__':
-    unittest.main()
+def test_reverse_order_and_filters(tmp_path: Path):
+    generator = DateGenerator(
+        start_year=2023,
+        end_year=2024,
+        preset="dmys",
+        separator="/",
+        reverse=True,
+        months=[1, 2],
+        days=[1, 29, 31],
+        prefix="corp-",
+        suffix="!",
+    )
+    values = generator.generate_to_list()
+    assert values[0].startswith("corp-29/02/24")
+    assert values[-1].endswith("01/01/23!")
+    output_file = generator.write(tmp_path / "dates.txt")
+    assert output_file.read_text(encoding="utf-8").splitlines()[0] == values[0]
+
+
+def test_custom_pattern_lowercase():
+    generator = DateGenerator(start_year=1990, end_year=1990, custom_pattern="%d%b%Y", case="lower")
+    values = generator.generate_to_list()
+    assert values[0] == "01jan1990"
+    assert values[1] == "02jan1990"
+    assert len(values) == 365
+
+
+def test_invalid_configuration_raises():
+    with pytest.raises(DateGeneratorError):
+        DateGenerator(start_year=2024, end_year=2023)
+
+    with pytest.raises(DateGeneratorError):
+        DateGenerator(start_year=2020, end_year=2021, preset="invalid")
+
+    with pytest.raises(DateGeneratorError):
+        DateGenerator(start_year=2020, end_year=2021, case="title")
+
+
+def test_cli_prints_to_stdout(capsys):
+    exit_code = run_from_args(
+        [
+            "--start",
+            "2024",
+            "--end",
+            "2024",
+            "--preset",
+            "mdy",
+            "--separator",
+            "-",
+            "--months",
+            "1",
+            "--days",
+            "15",
+        ]
+    )
+    assert exit_code == 0
+    captured = capsys.readouterr()
+    assert "01-15-2024" in captured.out.splitlines()
+
+
+def test_cli_list_presets(capsys):
+    exit_code = run_from_args(["--list-presets"])
+    assert exit_code == 0
+    output = capsys.readouterr().out
+    for key in FORMAT_PRESETS:
+        assert key in output
+
+
+def test_cli_writes_file(tmp_path: Path):
+    file_path = tmp_path / "out.txt"
+    exit_code = run_from_args(
+        [
+            "--start",
+            "2024",
+            "--end",
+            "2024",
+            "--preset",
+            "ymds",
+            "--output",
+            str(file_path),
+            "--newline",
+            "\r\n",
+        ]
+    )
+    assert exit_code == 0
+    content = file_path.read_bytes()
+    assert content.startswith(b"24")
+    assert b"\r\n" in content
