@@ -5,7 +5,7 @@ Date Generator is a lightweight toolkit for generating date-based wordlists and 
 ## Highlights
 
 - **Python package first** – import `date_generator` in any project and access the `DateGenerator` class or helper functions.
-- **Flexible formatting** – choose from multiple presets or bring your own `strftime` pattern.
+- **Flexible formatting** – customise output with symbolic format templates or bring your own `strftime` pattern.
 - **Wordlist friendly** – apply prefixes, suffixes, casing rules, and chronological order suitable for penetration testing.
 - **CLI ready** – install the package and run `date-generator` for on-the-fly date generation.
 
@@ -20,7 +20,7 @@ Date Generator is a lightweight toolkit for generating date-based wordlists and 
 2. Generate values directly from the command line:
 
    ```bash
-   date-generator --start 1990 --end 1995 --preset dmys --separator "/" --prefix user-
+   date-generator --start 1990 --end 1995 --format DDMMYY --separator "/" --prefix user-
    ```
 
 3. Or import the library in Python:
@@ -28,7 +28,7 @@ Date Generator is a lightweight toolkit for generating date-based wordlists and 
    ```python
    from date_generator import DateGenerator
 
-   generator = DateGenerator(start_year=1990, end_year=1995, preset="ymd")
+   generator = DateGenerator(start_year=1990, end_year=1995, format="YYYYMMDD")
    for value in generator.generate():
        print(value)
    ```

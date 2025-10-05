@@ -4,13 +4,13 @@ from pathlib import Path
 
 import pytest
 
-from date_generator import FORMAT_PRESETS, DateGenerator, generate_dates
-from date_generator.cli import run_from_args
+from date_generator import DateGenerator, generate_dates
+from date_generator.cli import FORMAT_SAMPLES, run_from_args
 from date_generator.core import DateGeneratorError
 
 
 def test_generate_dates_default_order():
-    result = generate_dates(start_year=2024, end_year=2024, preset="ymd", separator="-")
+    result = generate_dates(start_year=2024, end_year=2024, format="YYYYMMDD", separator="-")
     assert result[0] == "2024-01-01"
     assert result[-1] == "2024-12-31"
     assert len(result) == 366  # leap year
@@ -20,7 +20,7 @@ def test_reverse_order_and_filters(tmp_path: Path):
     generator = DateGenerator(
         start_year=2023,
         end_year=2024,
-        preset="dmys",
+        format="DDMMYY",
         separator="/",
         reverse=True,
         months=[1, 2],
@@ -33,6 +33,17 @@ def test_reverse_order_and_filters(tmp_path: Path):
     assert values[-1].endswith("01/01/23!")
     output_file = generator.write(tmp_path / "dates.txt")
     assert output_file.read_text(encoding="utf-8").splitlines()[0] == values[0]
+
+
+def test_generate_dates_month_only():
+    values = generate_dates(
+        start_year=2024,
+        end_year=2024,
+        format="MM",
+        months=[1, 2, 3],
+        days=[1],
+    )
+    assert values == ["01", "02", "03"]
 
 
 def test_custom_pattern_lowercase():
@@ -48,7 +59,7 @@ def test_invalid_configuration_raises():
         DateGenerator(start_year=2024, end_year=2023)
 
     with pytest.raises(DateGeneratorError):
-        DateGenerator(start_year=2020, end_year=2021, preset="invalid")
+        DateGenerator(start_year=2020, end_year=2021, format="invalid")
 
     with pytest.raises(DateGeneratorError):
         DateGenerator(start_year=2020, end_year=2021, case="title")
@@ -57,17 +68,17 @@ def test_invalid_configuration_raises():
 def test_cli_prints_to_stdout(capsys):
     exit_code = run_from_args(
         [
-            "--start",
+            "-s",
             "2024",
-            "--end",
+            "-e",
             "2024",
-            "--preset",
-            "mdy",
-            "--separator",
+            "-f",
+            "MMDDYYYY",
+            "-S",
             "-",
-            "--months",
+            "-m",
             "1",
-            "--days",
+            "-d",
             "15",
         ]
     )
@@ -76,12 +87,38 @@ def test_cli_prints_to_stdout(capsys):
     assert "01-15-2024" in captured.out.splitlines()
 
 
-def test_cli_list_presets(capsys):
-    exit_code = run_from_args(["--list-presets"])
+def test_cli_list_formats(capsys):
+    exit_code = run_from_args(["--list-formats"])
     assert exit_code == 0
     output = capsys.readouterr().out
-    for key in FORMAT_PRESETS:
+    for key in FORMAT_SAMPLES:
         assert key in output
+
+
+def test_cli_short_flags_and_prefix_suffix(capsys):
+    exit_code = run_from_args(
+        [
+            "-s",
+            "2024",
+            "-e",
+            "2024",
+            "-f",
+            "MMDD",
+            "-P",
+            "pre-",
+            "-X",
+            "post",
+            "-r",
+            "-m",
+            "1",
+            "-d",
+            "1",
+        ]
+    )
+    assert exit_code == 0
+    captured = capsys.readouterr().out.splitlines()
+    assert captured[0].startswith("pre-")
+    assert captured[0].endswith("post")
 
 
 def test_cli_writes_file(tmp_path: Path):
@@ -92,8 +129,8 @@ def test_cli_writes_file(tmp_path: Path):
             "2024",
             "--end",
             "2024",
-            "--preset",
-            "ymds",
+            "--format",
+            "YYMMDD",
             "--output",
             str(file_path),
             "--newline",

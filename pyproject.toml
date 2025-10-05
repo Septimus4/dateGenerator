@@ -46,7 +46,7 @@ addopts = "-ra --strict-markers --strict-config --cov=date_generator --cov-repor
 testpaths = ["tests"]
 
 [tool.ruff]
-line-length = 100
+line-length = 120
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "B", "UP"]

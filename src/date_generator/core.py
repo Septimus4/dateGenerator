@@ -1,18 +1,28 @@
-"""Core date generation utilities."""
+"""Core date generation utilities.
+
+Simplified implementation:
+* Removed ``FormatChunk`` indirection; format specs now compile to simple tokens.
+* ``parse_format_spec`` accepts any component order (Y/M/D groups) without positional
+    restrictions so long as each component appears at most once.
+* Lazy compilation of the formatter the first time formatting is required.
+* Iteration works over raw integers (year, month, day) and only materialises a
+    ``date`` object when a custom ``strftime`` pattern is used.
+"""
+
 from __future__ import annotations
 
 import calendar
 from dataclasses import dataclass
 from datetime import date, datetime
 from pathlib import Path
-from typing import Callable, Iterable, Iterator, Sequence
+from typing import Iterable, Iterator, Sequence
 
 __all__ = [
     "DateGenerator",
     "DateGeneratorConfig",
-    "DateFormat",
-    "FORMAT_PRESETS",
+    "DateGeneratorError",
     "generate_dates",
+    "parse_format_spec",
 ]
 
 
@@ -20,76 +30,62 @@ class DateGeneratorError(ValueError):
     """Base error raised for invalid configuration."""
 
 
-@dataclass(frozen=True)
-class DateFormat:
-    """Definition of a supported preset date format."""
+def parse_format_spec(spec: str) -> tuple[str, ...]:
+    """Parse a symbolic date format specification into ordered component tokens.
 
-    key: str
-    description: str
-    formatter: Callable[[date, str], str]
+    Accepted characters are ``Y``, ``M``, and ``D`` grouped contiguously.
+    Rules:
+    * At most one group for each letter.
+    * ``Y`` group length must be 2 (short year) or 4 (full year).
+    * ``M`` and ``D`` groups must be exactly length 2.
+    * Any order is accepted (e.g. ``DDMMYYYY`` or ``MMYYYY`` or ``YYMMDD``).
 
-    def format(self, value: date, separator: str) -> str:
-        """Format ``value`` with ``separator`` using this preset."""
+    The returned tuple contains tokens from: ``'Y4'``, ``'Y2'``, ``'M'``, ``'D'``.
+    """
 
-        return self.formatter(value, separator)
+    if not spec:
+        raise DateGeneratorError("format string must not be empty")
+    text = spec.upper().strip()
+    invalid = set(text) - {"Y", "M", "D"}
+    if invalid:
+        joined = ", ".join(sorted(invalid))
+        raise DateGeneratorError(f"format may only contain Y, M, and D characters (found: {joined})")
 
+    # Group contiguous identical characters using a simple scan (clearer & faster than itertools.groupby here)
+    groups: list[tuple[str, int]] = []
+    current = text[0]
+    count = 1
+    for char in text[1:]:
+        if char == current:
+            count += 1
+        else:
+            groups.append((current, count))
+            current = char
+            count = 1
+    groups.append((current, count))
 
-def _format_ymd(value: date, separator: str) -> str:
-    return f"{value.year:04d}{separator}{value.month:02d}{separator}{value.day:02d}"
+    seen: set[str] = set()
+    tokens: list[str] = []
+    for letter, length in groups:
+        if letter in seen:
+            raise DateGeneratorError(f"{letter} appears multiple times; combine into a single group")
+        seen.add(letter)
+        if letter == "Y":
+            if length not in {2, 4}:
+                raise DateGeneratorError("Y groups must be either 'YY' or 'YYYY'")
+            tokens.append("Y4" if length == 4 else "Y2")
+        elif letter == "M":
+            if length != 2:
+                raise DateGeneratorError("M groups must be exactly 'MM'")
+            tokens.append("M")
+        elif letter == "D":
+            if length != 2:
+                raise DateGeneratorError("D groups must be exactly 'DD'")
+            tokens.append("D")
 
-
-def _format_dmy(value: date, separator: str) -> str:
-    return f"{value.day:02d}{separator}{value.month:02d}{separator}{value.year:04d}"
-
-
-def _format_mdy(value: date, separator: str) -> str:
-    return f"{value.month:02d}{separator}{value.day:02d}{separator}{value.year:04d}"
-
-
-def _format_dmys(value: date, separator: str) -> str:
-    return f"{value.day:02d}{separator}{value.month:02d}{separator}{value.year % 100:02d}"
-
-
-def _format_ymds(value: date, separator: str) -> str:
-    return f"{value.year % 100:02d}{separator}{value.month:02d}{separator}{value.day:02d}"
-
-
-def _format_mdys(value: date, separator: str) -> str:
-    return f"{value.month:02d}{separator}{value.day:02d}{separator}{value.year % 100:02d}"
-
-
-FORMAT_PRESETS: dict[str, DateFormat] = {
-    "ymd": DateFormat(
-        key="ymd",
-        description="YYYY{sep}MM{sep}DD (e.g. 20241231)",
-        formatter=_format_ymd,
-    ),
-    "dmy": DateFormat(
-        key="dmy",
-        description="DD{sep}MM{sep}YYYY (e.g. 31-12-2024)",
-        formatter=_format_dmy,
-    ),
-    "mdy": DateFormat(
-        key="mdy",
-        description="MM{sep}DD{sep}YYYY (e.g. 12/31/2024)",
-        formatter=_format_mdy,
-    ),
-    "dmys": DateFormat(
-        key="dmys",
-        description="DD{sep}MM{sep}YY (e.g. 31.12.24)",
-        formatter=_format_dmys,
-    ),
-    "ymds": DateFormat(
-        key="ymds",
-        description="YY{sep}MM{sep}DD (e.g. 24-12-31)",
-        formatter=_format_ymds,
-    ),
-    "mdys": DateFormat(
-        key="mdys",
-        description="MM{sep}DD{sep}YY (e.g. 12-31-24)",
-        formatter=_format_mdys,
-    ),
-}
+    if not tokens:
+        raise DateGeneratorError("format must include at least one component (Y, M, or D)")
+    return tuple(tokens)
 
 
 @dataclass
@@ -98,7 +94,7 @@ class DateGeneratorConfig:
 
     start_year: int
     end_year: int
-    preset: str = "ymd"
+    format: str = "YYYYMMDD"
     separator: str = ""
     custom_pattern: str | None = None
     months: Sequence[int] | None = None
@@ -125,18 +121,17 @@ class DateGeneratorConfig:
         days = self._normalize_int_sequence(self.days, 1, 31, "days")
 
         custom_pattern = self.custom_pattern
-        if self.preset not in FORMAT_PRESETS and not custom_pattern:
-            choices = ", ".join(sorted(FORMAT_PRESETS))
-            raise DateGeneratorError(
-                f"preset must be one of {choices} when custom_pattern is not provided"
-            )
+        format_normalized = self.format.upper().strip() if self.format else ""
         if custom_pattern:
             self._validate_pattern(custom_pattern)
+        else:
+            # Eager validation so construction errors fast (tests rely on this)
+            parse_format_spec(format_normalized or "YYYYMMDD")
 
-        return DateGeneratorConfig(
+        config = DateGeneratorConfig(
             start_year=self.start_year,
             end_year=self.end_year,
-            preset=self.preset,
+            format=format_normalized or "YYYYMMDD",
             separator=self.separator,
             custom_pattern=custom_pattern,
             months=months,
@@ -146,6 +141,7 @@ class DateGeneratorConfig:
             case=case_normalized,
             reverse=self.reverse,
         )
+        return config
 
     @staticmethod
     def _normalize_int_sequence(
@@ -174,12 +170,13 @@ class DateGenerator:
 
     def __init__(self, config: DateGeneratorConfig | None = None, /, **kwargs) -> None:
         if config and kwargs:
-            raise DateGeneratorError(
-                "Provide either a config object or keyword arguments, not both"
-            )
+            raise DateGeneratorError("Provide either a config object or keyword arguments, not both")
         if config is None:
             config = DateGeneratorConfig(**kwargs)
         self.config = config.normalized()
+        # Lazy compiled spec tokens & formatter cache
+        self._spec_tokens: tuple[str, ...] | None = None
+        self._compile_cache: list[str] | None = None  # used only to remember token order
 
     def __iter__(self) -> Iterator[str]:
         return self.generate()
@@ -187,8 +184,13 @@ class DateGenerator:
     def generate(self) -> Iterator[str]:
         """Yield formatted date strings according to the configuration."""
 
-        for current_date in self._iter_dates():
-            yield self._format(current_date)
+        if self.config.custom_pattern:
+            # Need full date objects for strftime
+            for y, m, d in self._iter_ymd():
+                yield self._format_custom(y, m, d)
+        else:
+            for y, m, d in self._iter_ymd():
+                yield self._format_spec(y, m, d)
 
     def generate_to_list(self) -> list[str]:
         """Return all generated date strings in a list."""
@@ -205,47 +207,66 @@ class DateGenerator:
                 stream.write(value + newline)
         return path
 
-    def _iter_dates(self) -> Iterator[date]:
-        months = self.config.months or tuple(range(1, 13))
-        days = self.config.days
+    # --- Iteration helpers -------------------------------------------------
+    def _iter_ymd(self) -> Iterator[tuple[int, int, int]]:
+        """Iterate over (year, month, day) tuples according to configuration."""
 
-        if self.config.reverse:
-            year_iter: Iterable[int] = range(self.config.end_year, self.config.start_year - 1, -1)
-
-            def iter_months(values: Sequence[int]) -> Iterable[int]:
-                return reversed(values)
-
+        months: Sequence[int] = self.config.months or tuple(range(1, 13))
+        reverse = self.config.reverse
+        years: Iterable[int]
+        if reverse:
+            years = range(self.config.end_year, self.config.start_year - 1, -1)
+            months_iter_factory = lambda: reversed(months)  # noqa: E731 - concise inline
         else:
-            year_iter = range(self.config.start_year, self.config.end_year + 1)
+            years = range(self.config.start_year, self.config.end_year + 1)
+            months_iter_factory = lambda: months  # noqa: E731
 
-            def iter_months(values: Sequence[int]) -> Iterable[int]:
-                return values
+        days_filter = self.config.days
 
-        for year in year_iter:
-            for month in iter_months(months):
-                _, last_day = calendar.monthrange(year, month)
-                if days is None:
-                    day_iter: Iterable[int]
-                    if self.config.reverse:
-                        day_iter = range(last_day, 0, -1)
+        for year in years:
+            for month in months_iter_factory():
+                last_day = calendar.monthrange(year, month)[1]
+                if days_filter is None:
+                    if reverse:
+                        day_iter: Iterable[int] = range(last_day, 0, -1)
                     else:
                         day_iter = range(1, last_day + 1)
                 else:
-                    valid_days = [day for day in days if day <= last_day]
-                    day_iter = reversed(valid_days) if self.config.reverse else valid_days
+                    valid_days = [d for d in days_filter if d <= last_day]
+                    day_iter = reversed(valid_days) if reverse else valid_days
                 for day in day_iter:
-                    yield date(year, month, day)
+                    yield year, month, day
 
-    def _format(self, value: date) -> str:
-        if self.config.custom_pattern:
-            formatted = value.strftime(self.config.custom_pattern)
-        else:
-            formatted = FORMAT_PRESETS[self.config.preset].format(value, self.config.separator)
+    # --- Formatting helpers ------------------------------------------------
+    def _format_custom(self, year: int, month: int, day: int) -> str:
+        dt = date(year, month, day)
+        formatted = dt.strftime(self.config.custom_pattern or "%Y%m%d")  # custom_pattern validated already
+        return self._apply_affixes_and_case(formatted)
+
+    def _format_spec(self, year: int, month: int, day: int) -> str:
+        if self._spec_tokens is None:
+            self._spec_tokens = parse_format_spec(self.config.format)
+        parts: list[str] = []
+        for token in self._spec_tokens:
+            if token == "Y4":
+                parts.append(f"{year:04d}")
+            elif token == "Y2":
+                parts.append(f"{year % 100:02d}")
+            elif token == "M":
+                parts.append(f"{month:02d}")
+            elif token == "D":
+                parts.append(f"{day:02d}")
+            else:  # pragma: no cover - defensive programming
+                raise DateGeneratorError(f"Unsupported format token: {token}")
+        formatted = self.config.separator.join(parts)
+        return self._apply_affixes_and_case(formatted)
+
+    def _apply_affixes_and_case(self, text: str) -> str:
         if self.config.case == "lower":
-            formatted = formatted.lower()
+            text = text.lower()
         elif self.config.case == "upper":
-            formatted = formatted.upper()
-        return f"{self.config.prefix}{formatted}{self.config.suffix}"
+            text = text.upper()
+        return f"{self.config.prefix}{text}{self.config.suffix}"
 
 
 def generate_dates(**kwargs) -> list[str]:
