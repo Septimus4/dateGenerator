@@ -47,6 +47,12 @@ More examples are available in the [library guide](docs/library.md).
 
 See [docs/development.md](docs/development.md) for linting, testing, and release workflows. Continuous integration is provided through GitHub Actions and enforces lint + coverage on pull requests.
 
+To build distributable archives locally, install the optional dev dependencies and run:
+
+```bash
+python -m build
+```
+
 ## License
 
 This project is distributed under the terms of the GNU General Public License v3.0. See [LICENSE](LICENSE).

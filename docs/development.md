@@ -13,6 +13,16 @@ Install dev dependencies:
 pip install -e .[dev]
 ```
 
+## Building distributions
+
+Install the [PyPA `build` frontend](https://pypi.org/project/build/) and create source and wheel archives with:
+
+```bash
+python -m build
+```
+
+The command writes artifacts to the `dist/` directory.
+
 ## Code quality
 
 Run Ruff to lint the code base:
