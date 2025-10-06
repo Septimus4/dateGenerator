@@ -37,11 +37,18 @@ GitHub Actions executes linting and test jobs on every push and pull request (`.
 
 ## Releasing
 
-1. Update the version in `pyproject.toml` and `readme.md` if necessary.
-2. Build the distribution:
+Chronogen uses [PyPI trusted publishing](https://docs.pypi.org/trusted-publishers/) to release from
+GitHub Actions. Complete these steps the first time to finish wiring PyPI to the repository:
 
-   ```bash
-   python -m build
-   ```
+1. Log in to PyPI, open the project, and visit **Publishing** under **Project settings**.
+2. In the **Pending publishers** table, locate the row for `Septimus4/Chronogen` and click **Approve**.
+   PyPI now trusts the `publish.yml` workflow for releases.
 
-3. Publish via your preferred tooling, e.g. `twine`.
+For every release:
+
+1. Update the version in `pyproject.toml` and `docs/readme.md` if necessary.
+2. Ensure the GitHub environment named `pypi` contains a `PYPI_API_TOKEN` secret with an API token that
+   has *Maintain* or *Owner* permissions for the project.
+3. Commit and push your changes, then draft a GitHub release. Publishing the release triggers the
+   `Publish to PyPI` workflow, which runs tests, builds wheels and source distributions, and uploads
+   them to PyPI automatically.
