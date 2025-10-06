@@ -1,6 +1,6 @@
-# Date Generator
+# Chronogen
 
-Date Generator creates date-based wordlists that can be used for penetration testing, QA fixtures, or any workflow that needs exhaustive date coverage.  The project now ships as a Python package with a modern command line interface and documentation.
+Chronogen creates date-based wordlists that can be used for penetration testing, QA fixtures, or any workflow that needs exhaustive date coverage. The project now ships as a Python package with a modern command line interface and documentation.
 
 ## Features
 
@@ -9,7 +9,7 @@ Date Generator creates date-based wordlists that can be used for penetration tes
 - Prefix, suffix, casing, and separator controls
 - Month/day filtering, leap-day aware
 - Reverse chronological generation for targeting the latest dates first
-- CLI, `python -m date_generator`, or importable library
+- CLI, `python -m chronogen`, or importable library
 
 ## Installation
 
@@ -26,15 +26,15 @@ pip install -e .[dev]
 ## Command line usage
 
 ```bash
-date-generator --start 1990 --end 1995 --format DDMMYY --separator "/" --prefix corp-
+chronogen --start 1990 --end 1995 --format DDMMYY --separator "/" --prefix corp-
 ```
 
-Use `date-generator --help` or consult the [CLI documentation](docs/cli.md) for all options. The tool can also be executed with `python -m date_generator` (module execution) during development.
+Use `chronogen --help` or consult the [CLI documentation](docs/cli.md) for all options. The tool can also be executed with `python -m chronogen` (module execution) during development.
 
 ## Library usage
 
 ```python
-from date_generator import DateGenerator
+from chronogen import DateGenerator
 
 generator = DateGenerator(start_year=2020, end_year=2021, format="YYYYMMDD", separator="-")
 for value in generator.generate():

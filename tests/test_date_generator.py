@@ -4,9 +4,9 @@ from pathlib import Path
 
 import pytest
 
-from date_generator import DateGenerator, generate_dates
-from date_generator.cli import FORMAT_SAMPLES, run_from_args
-from date_generator.core import DateGeneratorError
+from chronogen import DateGenerator, generate_dates
+from chronogen.cli import FORMAT_SAMPLES, run_from_args
+from chronogen.core import DateGeneratorError
 
 
 def test_generate_dates_default_order():

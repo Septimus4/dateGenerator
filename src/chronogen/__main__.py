@@ -1,4 +1,4 @@
-"""Allow running ``python -m date_generator``."""
+"""Allow running ``python -m chronogen``."""
 
 from .cli import main
 

@@ -5,14 +5,14 @@ from pathlib import Path
 
 import pytest
 
-from date_generator.cli import (
+from chronogen.cli import (
     PositiveIntAction,
     main,
     parse_format,
     parse_newline,
     run_from_args,
 )
-from date_generator.core import DateGeneratorError
+from chronogen.core import DateGeneratorError
 
 
 @pytest.mark.parametrize(
@@ -78,7 +78,7 @@ def test_main_handles_core_errors(monkeypatch: pytest.MonkeyPatch) -> None:
     def broken_config(*args, **kwargs):  # type: ignore[unused-argument]
         raise DateGeneratorError("boom")
 
-    monkeypatch.setattr("date_generator.cli.DateGenerator", broken_config)
-    monkeypatch.setattr("date_generator.cli.sys.argv", ["date-generator", "-s", "2024", "-e", "2024"])
+    monkeypatch.setattr("chronogen.cli.DateGenerator", broken_config)
+    monkeypatch.setattr("chronogen.cli.sys.argv", ["chronogen", "-s", "2024", "-e", "2024"])
     exit_code = main()
     assert exit_code == 2
