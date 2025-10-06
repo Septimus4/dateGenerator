@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from date_generator.core import DateGeneratorError, parse_format_spec
+from chronogen.core import DateGeneratorError, parse_format_spec
 
 
 def test_parse_format_spec_accepts_partial_components() -> None:

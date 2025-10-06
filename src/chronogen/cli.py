@@ -1,4 +1,4 @@
-"""Command line interface for the date generator package."""
+"""Command line interface for the Chronogen package."""
 
 from __future__ import annotations
 
@@ -115,7 +115,7 @@ def parse_format(value: str) -> str:
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        prog="date-generator",
+        prog="chronogen",
         description=dedent(
             """
             Generate date-based wordlists for pentesting and automation.
@@ -125,8 +125,8 @@ def build_parser() -> argparse.ArgumentParser:
         epilog=dedent(
             """
             Example usage:
-              date-generator --start 2000 --end 2001 --format YYYYMMDD
-              date-generator --list-formats
+              chronogen --start 2000 --end 2001 --format YYYYMMDD
+              chronogen --list-formats
             """
         ),
         formatter_class=FriendlyFormatter,

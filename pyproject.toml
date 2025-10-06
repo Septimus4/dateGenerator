@@ -3,9 +3,9 @@ requires = ["setuptools>=68", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "date-generator"
+name = "chronogen"
 version = "1.0.0"
-description = "Generate customizable date."
+description = "Generate customizable date wordlists."
 readme = "README.md"
 authors = [{ name = "William Le Roux" }]
 license = "LGPL-3.0-only"
@@ -21,8 +21,8 @@ classifiers = [
 dependencies = []
 
 [project.urls]
-Homepage = "https://github.com/Septimus4/dateGenerator"
-Documentation = "https://github.com/Septimus4/dateGenerator/tree/main/docs"
+Homepage = "https://github.com/Septimus4/Chronogen"
+Documentation = "https://github.com/Septimus4/Chronogen/tree/main/docs"
 
 [project.optional-dependencies]
 dev = [
@@ -32,7 +32,7 @@ dev = [
 ]
 
 [project.scripts]
-date-generator = "date_generator.cli:main"
+chronogen = "chronogen.cli:main"
 
 [tool.setuptools]
 package-dir = {"" = "src"}
@@ -42,7 +42,7 @@ where = ["src"]
 
 [tool.pytest.ini_options]
 minversion = "7.0"
-addopts = "-ra --strict-markers --strict-config --cov=date_generator --cov-report=term-missing"
+addopts = "-ra --strict-markers --strict-config --cov=chronogen --cov-report=term-missing"
 testpaths = ["tests"]
 
 [tool.ruff]
@@ -53,7 +53,7 @@ select = ["E", "F", "I", "B", "UP"]
 
 [tool.coverage.run]
 branch = true
-source = ["date_generator"]
+source = ["chronogen"]
 omit = [
     "tests/*",
 ]
