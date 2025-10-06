@@ -6,14 +6,14 @@ build-backend = "setuptools.build_meta"
 name = "date-generator"
 version = "1.0.0"
 description = "Generate customizable date."
-readme = "readme.md"
+readme = "README.md"
 authors = [{ name = "William Le Roux" }]
-license = { file = "LICENSE" }
+license = "LGPL-3.0-only"
+license-files = ["LICENSE"]
 requires-python = ">=3.8"
 classifiers = [
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3 :: Only",
-    "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
     "Intended Audience :: Information Technology",
     "Topic :: Security",
     "Topic :: Utilities",
