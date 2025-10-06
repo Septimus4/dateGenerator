@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "date-generator"
 version = "1.0.0"
-description = "Generate customizable date wordlists for pentesting and automation."
+description = "Generate customizable date."
 readme = "readme.md"
 authors = [{ name = "William Le Roux" }]
 license = { file = "LICENSE" }
@@ -21,8 +21,8 @@ classifiers = [
 dependencies = []
 
 [project.urls]
-Homepage = "https://github.com/example/date-generator"
-Documentation = "https://github.com/example/date-generator/tree/main/docs"
+Homepage = "https://github.com/Septimus4/dateGenerator"
+Documentation = "https://github.com/Septimus4/date-generator/tree/main/docs"
 
 [project.optional-dependencies]
 dev = [
