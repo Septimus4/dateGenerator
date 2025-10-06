@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "date-generator"
-version = "0.2.0"
+version = "1.0.0"
 description = "Generate customizable date wordlists for pentesting and automation."
 readme = "readme.md"
 authors = [{ name = "William Le Roux" }]
