@@ -22,7 +22,7 @@ dependencies = []
 
 [project.urls]
 Homepage = "https://github.com/Septimus4/dateGenerator"
-Documentation = "https://github.com/Septimus4/date-generator/tree/main/docs"
+Documentation = "https://github.com/Septimus4/dateGenerator/tree/main/docs"
 
 [project.optional-dependencies]
 dev = [
