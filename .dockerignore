@@ -1,0 +1,15 @@
+.git/
+.gitignore
+.github/
+
+.idea/
+.vscode/
+
+**/Dockerfile
+
+docs/
+dist/
+tests/
+LICENSE
+**/*.md
+*.egg-info/
