@@ -13,7 +13,10 @@ Chronogen creates date-based wordlists that can be used for penetration testing,
 
 ## Installation
 
+### From source
+
 ```bash
+git clone git@github.com:Septimus4/Chronogen.git && cd Chronogen
 pip install .
 ```
 
@@ -21,6 +24,32 @@ For development extras (linting + tests):
 
 ```bash
 pip install -e .[dev]
+```
+
+### With pip
+
+```bash
+pip install chronogen
+```
+
+### With Docker
+
+To build the Docker image locally, run:
+
+```bash
+docker build -t chronogen:local .
+```
+
+or pull the pre-built image :
+
+```bash
+docker pull ghcr.io/Septimus4/Chronogen
+```
+
+then use it:
+
+```bash
+docker run ghcr.io/Septimus4/Chronogen [ARGS]
 ```
 
 ## Command line usage
