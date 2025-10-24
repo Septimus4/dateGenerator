@@ -43,13 +43,13 @@ docker build -t chronogen:local .
 or pull the pre-built image :
 
 ```bash
-docker pull ghcr.io/Septimus4/Chronogen
+docker pull ghcr.io/septimus4/chronogen:latest
 ```
 
 then use it:
 
 ```bash
-docker run ghcr.io/Septimus4/Chronogen [ARGS]
+docker run ghcr.io/septimus4/chronogen:latest [ARGS]
 ```
 
 ## Command line usage
