@@ -6,6 +6,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ toLower(github.repository) }}
 
 jobs:
   build-and-push:
@@ -18,15 +19,11 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Derive lowercase image name
-        run: |
-          echo "IMAGE_NAME=${GITHUB_REPOSITORY,,}" >> "$GITHUB_ENV"
-
       - name: Extract version from pyproject.toml
         id: version
         run: |
-          VERSION=$(grep -E "^[[:space:]]*version[[:space:]]*=" pyproject.toml | head -n1 | sed -E "s/.*=[[:space:]]*['\"]([^'\"]+)['\"].*/\1/")
-          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          VERSION=$(grep -E '^version\s*=' pyproject.toml | awk -F'"' '{print $2}')
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
 
       - name: Log in to GHCR
         uses: docker/login-action@v3
@@ -34,6 +31,9 @@ jobs:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
@@ -49,6 +49,6 @@ jobs:
             org.opencontainers.image.title=${{ env.IMAGE_NAME }}
             org.opencontainers.image.description=Creates date-based wordlists that can be used for penetration testing, QA fixtures, or any workflow that needs exhaustive date coverage.
             org.opencontainers.image.version=${{ steps.version.outputs.version }}
-            org.opencontainers.image.source=https://github.com/${{ github.repository }}
+            org.opencontainers.image.source=${{ github.repositoryUrl }}
             org.opencontainers.image.revision=${{ github.sha }}
-            org.opencontainers.image.licenses=LGPL-3.0-or-later
+            org.opencontainers.image.licenses=GNU Lesser General Public License v3.0
