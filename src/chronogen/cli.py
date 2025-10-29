@@ -9,6 +9,7 @@ from textwrap import dedent
 from typing import Sequence
 
 import chronogen
+
 from .core import DateGenerator, DateGeneratorConfig, DateGeneratorError, parse_format_spec
 
 
@@ -203,12 +204,7 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Show suggested format templates and exit",
     )
-    parser.add_argument(
-        "-v",
-        "--version",
-        action="version",
-        version=f"chronogen {chronogen.__version__}"
-    )
+    parser.add_argument("-v", "--version", action="version", version=f"chronogen {chronogen.__version__}")
     return parser
 
 
